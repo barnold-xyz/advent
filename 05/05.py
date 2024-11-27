@@ -59,30 +59,75 @@ def efficient_map(triplet, key):
     #print(dests)
     return dests[pos] + (key - ref_low)
 
+def map_one(triplets, key):
+    for (dest, src, size) in triplets:
+        if src <= key < src + size:
+            return key + dest - src
+    return key
 
+# List of [start, end) ranges
+def map_ranges(triplets, ranges):
+    adjusted_ranges = []
+    for (dest, src, size) in triplets:
+        src_end = src + size
+        new_ranges = []
+        while ranges:
+            # [start                                     end)
+            #          [src       src_end]
+            # [BEFORE ][INTER            ][AFTER        )
+            (start, end) = ranges.pop()
+            # (src, size) might cut (start, end)
+            before = (start, min(end, src))
+            intersect = (max(start, src), min(src_end, end))
+            after = (max(src_end, start), end)
+            if before[1] > before[0]:
+                new_ranges.append(before)
+            if intersect[1] > intersect[0]:
+                adjusted_ranges.append((intersect[0] - src + dest, intersect[1] - src + dest))
+            if after[1] > after[0]:
+                new_ranges.append(after)
+        ranges = new_ranges
+    return adjusted_ranges + ranges
 
 def seed_to_location(seed):
-    soil = efficient_map(parsed_data['seed_to_soil_map'], seed)
-    fertilizer = efficient_map(parsed_data['soil_to_fertilizer_map'], soil)
-    water = efficient_map(parsed_data['fertilizer_to_water_map'], fertilizer)
-    light = efficient_map(parsed_data['water_to_light_map'], water)
-    temperature = efficient_map(parsed_data['light_to_temperature_map'], light)
-    humidity = efficient_map(parsed_data['temperature_to_humidity_map'], temperature)
-    location = efficient_map(parsed_data['humidity_to_location_map'], humidity)
+    soil = map_one(parsed_data['seed_to_soil_map'], seed)
+    fertilizer = map_one(parsed_data['soil_to_fertilizer_map'], soil)
+    water = map_one(parsed_data['fertilizer_to_water_map'], fertilizer)
+    light = map_one(parsed_data['water_to_light_map'], water)
+    temperature = map_one(parsed_data['light_to_temperature_map'], light)
+    humidity = map_one(parsed_data['temperature_to_humidity_map'], temperature)
+    location = map_one(parsed_data['humidity_to_location_map'], humidity)
     return location
+
+def seed_range_to_location(seed_ranges):
+    soil = map_ranges(parsed_data['seed_to_soil_map'], seed_ranges)
+    fertilizer = map_ranges(parsed_data['soil_to_fertilizer_map'], soil)
+    water = map_ranges(parsed_data['fertilizer_to_water_map'], fertilizer)
+    light = map_ranges(parsed_data['water_to_light_map'], water)
+    temperature = map_ranges(parsed_data['light_to_temperature_map'], light)
+    humidity = map_ranges(parsed_data['temperature_to_humidity_map'], temperature)
+    location = map_ranges(parsed_data['humidity_to_location_map'], humidity)
+    return location
+
+
+
+def parse_seeds(seeds):
+    seed_defs = [(x, y) for x, y in zip(seeds[::2], seeds[1::2])]
+    #seed_list = [i for x, y in seed_defs for i in range(x, x + y + 1)]
+    #return seed_list
+    seed_ranges = [(x, x + y) for x, y in seed_defs]
+    return seed_ranges
+
+all_seeds = parse_seeds(seeds)
+
 
 def summarize_part1():
     return min([seed_to_location(seed) for seed in seeds])
 
+def summarize_part2():
+    #return min([seed_to_location(seed) for seed in all_seeds])
+    locs = seed_range_to_location(all_seeds)
+    return min([l[0] for l in locs])
+
 print(summarize_part1())
-
-
-
-seed_to_soil_map = parsed_data['seed_to_soil_map']
-soil_to_fertilizer_map = parsed_data['soil_to_fertilizer_map']
-fertilizer_to_water_map = parsed_data['fertilizer_to_water_map']
-water_to_light_map = parsed_data['water_to_light_map']
-light_to_temperature_map = parsed_data['light_to_temperature_map']
-temperature_to_humidity_map = parsed_data['temperature_to_humidity_map']
-humidity_to_location_map = parsed_data['humidity_to_location_map']
-
+print(summarize_part2())
