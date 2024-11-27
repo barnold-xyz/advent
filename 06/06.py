@@ -28,6 +28,5 @@ def summarize_part2(input_data):
     solutions = ways_to_beat_record(time, record_dist)
     return int(solutions)
 
-
 print(summarize_part1(input_data))
 print(summarize_part2(input_data))
