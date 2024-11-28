@@ -1,6 +1,16 @@
 import networkx as nx
+import math
 
-data = open("08/test3.txt").read().strip().split('\n\n')
+def lcm(a, b):
+    return abs(a * b) // math.gcd(a, b)
+
+def lcm_multiple(numbers):
+    result = numbers[0]
+    for number in numbers[1:]:
+        result = lcm(result, number)
+    return result
+
+data = open("08/input.txt").read().strip().split('\n\n')
 
 def parse_node(node):
     name, left_right = node.split('=')
@@ -13,19 +23,13 @@ def parse_node(node):
 instructions = data[0]
 network_def = data[1].split('\n')
 
-# Initialize the graph
 graph = nx.MultiDiGraph()
-
-# Parse each node and add it to the graph
 for node in network_def:
     name, children = parse_node(node)
     graph.add_node(name)
     left, right = children
     graph.add_edge(name, left, direction='L')
     graph.add_edge(name, right, direction='R')
-
-print(graph.nodes())
-print(graph.edges(data=True))
 
 def count_steps_to_zzz(instructions, graph):
     current = 'AAA'
@@ -37,8 +41,6 @@ def count_steps_to_zzz(instructions, graph):
         steps += 1 
     return steps
 
-#print(count_steps_to_zzz(instructions, graph))
-
 def simultaneous_traverse_slow(instructions, graph):
     current = [node for node in graph if node.endswith('A')]
     print('current:', current)
@@ -46,15 +48,30 @@ def simultaneous_traverse_slow(instructions, graph):
     instruction_len = len(instructions)
     at_end = False
     
-    while (not at_end) and steps < 1e8:
-        if instructions[steps % instruction_len] == 'L':
-            current = [list(graph.successors(node))[0] if len(list(graph.successors(node))) > 0 else node for node in current]
-        elif instructions[steps % instruction_len] == 'R':
-            current = [list(graph.successors(node))[1] if len(list(graph.successors(node))) > 1 else node for node in current]
+    while (not at_end) and steps < 1e6:
+        next_int = instructions[steps % instruction_len]
+        current = [[v for u, v, d in graph.edges(n, data=True) if d['direction'] == next_int][0] for n in current]
         steps += 1 
         #print('current:', current)
         if all([node.endswith('Z') for node in current]): at_end = True
     return steps
 
-#print(simultaneous_traverse_slow(instructions, graph))
-#print([node for node in graph if node.endswith('Z')])
+def shortest_path_distance(graph, source, target):
+    try:
+        distance = nx.shortest_path_length(graph, source=source, target=target)
+        return distance
+    except nx.NetworkXNoPath:
+        return None
+    
+start_nodes = [node for node in graph if node.endswith('A')]
+end_nodes = [node for node in graph if node.endswith('Z')]
+
+# AHA each starting node can only go to one ending node! 
+distances = [len(instructions)]
+for start_node in start_nodes:
+    for end_node in end_nodes:
+        dist = shortest_path_distance(graph, start_node, end_node)
+        if dist is not None: distances.append(dist)
+
+print(count_steps_to_zzz(instructions, graph))
+print(lcm_multiple(distances))
