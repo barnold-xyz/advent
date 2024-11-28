@@ -1,15 +1,6 @@
 import networkx as nx
 import math
 
-def lcm(a, b):
-    return abs(a * b) // math.gcd(a, b)
-
-def lcm_multiple(numbers):
-    result = numbers[0]
-    for number in numbers[1:]:
-        result = lcm(result, number)
-    return result
-
 data = open("08/input.txt").read().strip().split('\n\n')
 
 def parse_node(node):
@@ -74,4 +65,4 @@ for start_node in start_nodes:
         if dist is not None: distances.append(dist)
 
 print(count_steps_to_zzz(instructions, graph))
-print(lcm_multiple(distances))
+print(math.lcm(*distances))  
