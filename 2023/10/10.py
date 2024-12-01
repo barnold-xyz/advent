@@ -1,5 +1,4 @@
 import networkx as nx
-import numpy as np
 
 data = open("2023/10/input.txt").read().strip().split('\n')
 
@@ -49,21 +48,27 @@ def parse_graph(data):
 
     return graph, start_pos
 
+def find_cycle_with_start(graph, start_pos):
+    cycles = nx.cycle_basis(graph)
+    for cycle in cycles:
+        if start_pos in cycle:
+            return cycle
+    return None
+
+def calculate_area(cycle):
+    n = len(cycle)
+    area = 0
+    for i in range(n):
+        x1, y1 = cycle[i]
+        x2, y2 = cycle[(i + 1) % n]
+        area += x1 * y2 - y1 * x2
+    return abs(area) / 2
+
 graph, start_pos = parse_graph(data)
-distances = nx.single_source_shortest_path_length(graph, start_pos)
+cycle = find_cycle_with_start(graph, start_pos)
 
-print(max(distances.values()))
-
-'''
-rows, cols = len(data), len(data[0])
-grid = np.full((len(data), len(data[0])), -1)  # Initialize with -1 to indicate unreachable nodes
-
-
-for (r, c), distance in distances.items():
-    grid[r, c] = distance
-
-# Print the grid
-for row in grid:
-    print(' '.join(f'{val:2}' for val in row))
-
-'''
+if cycle:
+    area = calculate_area(cycle)
+    print("Area enclosed by the cycle:", area - len(cycle) / 2 + 1)
+else:
+    print("No cycle found containing the start position.")
