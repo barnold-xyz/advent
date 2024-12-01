@@ -3,7 +3,7 @@ import numpy as np
 #epsilon = np.finfo(np.float64).tiny
 epsilon = 1e-6
 
-with open('06/input.txt', 'r') as file:
+with open('2023/06/input.txt', 'r') as file:
     input_data = file.readlines()
 
 # have to determine how long to hold the button

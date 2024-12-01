@@ -2,7 +2,7 @@ import re
 
 input = []
 
-with open('03/input.txt', 'r') as file:
+with open('2023/03/input.txt', 'r') as file:
     for line in file:
         input.append(line.strip())
 

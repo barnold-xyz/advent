@@ -27,7 +27,7 @@ def parse_input(file_path):
 
     return data
 
-parsed_data = parse_input('05/input.txt')
+parsed_data = parse_input('2023/05/input.txt')
 seeds = parsed_data['seeds']
 
 def efficient_map(triplet, key):

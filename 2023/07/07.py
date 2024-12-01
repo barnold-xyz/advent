@@ -1,5 +1,5 @@
 plays = []
-with open('07/input.txt', 'r') as file:
+with open('2023/07/input.txt', 'r') as file:
     for line in file:
         plays.append(line.strip().split())
 

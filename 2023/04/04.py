@@ -1,7 +1,7 @@
 
 cards = []
 
-with open('04/input.txt', 'r') as file:
+with open('2023/04/input.txt', 'r') as file:
     for line in file:
         line = line.strip().split(':')
         card_number = line[0].strip().split()[1]

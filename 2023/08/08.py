@@ -1,7 +1,7 @@
 import networkx as nx
 import math
 
-data = open("08/input.txt").read().strip().split('\n\n')
+data = open("2023/08/input.txt").read().strip().split('\n\n')
 
 def parse_node(node):
     name, left_right = node.split('=')

@@ -6,7 +6,7 @@ restrictions = {
     'blue': 14
 }
 
-with open('02/input.txt', 'r') as file:
+with open('2023/02/input.txt', 'r') as file:
     for line in file:
         input.append(line.strip())
 

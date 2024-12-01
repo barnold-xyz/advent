@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 
 # Read and parse the input file
-data = open("05/input.txt").read().strip()
+data = open("2023/05/input.txt").read().strip()
 lines = data.split('\n')
 
 # Split the data into parts
