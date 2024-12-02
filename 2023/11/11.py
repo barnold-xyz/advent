@@ -1,5 +1,6 @@
 import itertools
 
+# Read and process the input data
 univ = open("2023/11/input.txt").read().strip()
 univ = univ.replace('.', '0').replace('#', '1')
 univ = [list(map(int, list(row))) for row in univ.split('\n')]
@@ -7,29 +8,21 @@ univ = [list(map(int, list(row))) for row in univ.split('\n')]
 def transpose(matrix):
     return [list(row) for row in zip(*matrix)]
 
+# Insert 'factor' number of rows/cols in place of any rows/cols that are all 0
 def expand_universe(univ, factor=1):
-    new_rows = list(range(len(univ)))
-    new_cols = list(range(len(univ[0])))
-    for i, row in enumerate(univ):
-        if sum(row) == 0:
-            for j in range(i, len(new_rows)):
-                new_rows[j] += factor
-    for i, col in enumerate(transpose(univ)):
-        if sum(col) == 0:
-            for j in range(i, len(new_cols)):
-                new_cols[j] += factor
-    return new_rows, new_cols
+    row_adj = list(itertools.accumulate([factor * (sum(row) == 0) for row in univ]))
+    col_adj = list(itertools.accumulate([factor * (sum(col) == 0) for col in transpose(univ)]))
+    return row_adj, col_adj
 
 def find_galaxies(univ):
-    galaxies = []
-    for r, row in enumerate(univ):
-        for c, cell in enumerate(row):
-            if cell == 1:
-                galaxies.append((r, c))
-    return [(i+1, galaxy) for i, galaxy in enumerate(galaxies)]
+    return [(i+1, (r, c)) for i, (r, row) in enumerate(enumerate(univ)) for c, cell in enumerate(row) if cell == 1]
 
-def shortest_path(g1, g2, row_map, col_map):
-    return abs(row_map[g1[0]] - row_map[g2[0]]) + abs(col_map[g1[1]] - col_map[g2[1]])
+def shortest_path(g1, g2, row_adj, col_adj):
+    x1, y1 = g1
+    x2, y2 = g2
+    xdiff = abs((x1 + row_adj[x1]) - (x2 + row_adj[x2]))
+    ydiff = abs((y1 + col_adj[y1]) - (y2 + col_adj[y2]))
+    return xdiff + ydiff
 
 galaxies = find_galaxies(univ)
 
