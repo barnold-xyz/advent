@@ -7,14 +7,16 @@ univ = [list(map(int, list(row))) for row in univ.split('\n')]
 def transpose(matrix):
     return [list(row) for row in zip(*matrix)]
 
-def expand_universe(univ):
+def expand_universe(univ, factor=1):
     expanded_rows = []
     expanded_universe = []
     for row in univ:
-        if(sum(row) == 0): expanded_rows.append(row)
+        if sum(row) == 0:
+            expanded_rows.extend([row] * factor)
         expanded_rows.append(row)
     for col in transpose(expanded_rows):
-        if(sum(col) == 0): expanded_universe.append(col)
+        if sum(col) == 0:
+            expanded_universe.extend([col] * factor)
         expanded_universe.append(col)
     return transpose(expanded_universe)
 
@@ -45,3 +47,4 @@ galaxies = find_galaxies(expanded_univ)
 #for (i1, g1), (i2, g2) in itertools.combinations(galaxies, 2):
 #    print(f"Pair: Galaxy {i1} at {g1} and Galaxy {i2} at {g2}, Shortest Path: {shortest_path(g1[0], g1[1], g2[0], g2[1])}")
 print(sum([shortest_path(g1[0], g1[1], g2[0], g2[1]) for (i1, g1), (i2, g2) in itertools.combinations(galaxies, 2)]))
+print(sum([shortest_path(g1[0], g1[1], g2[0], g2[1]) for (i1, g1), (i2, g2) in itertools.combinations(find_galaxies(expand_universe(univ,100000-1)), 2)]))
