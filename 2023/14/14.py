@@ -1,4 +1,6 @@
-data = open("2023/14/test.txt").read().strip().split('\n')
+from functools import lru_cache
+
+data = open("2023/14/input.txt").read().strip().split('\n')
 
 def transpose(data):
     return [''.join(row) for row in zip(*data)]
@@ -17,9 +19,13 @@ def score(data):
 
 rolled = transpose([roll(row) for row in transpose(data)])
 #print('\n'.join(rolled))
-#print(score(rolled))
+print(score(rolled))
 
+@lru_cache(maxsize=None)
 def cycle(data):
+    # Convert data to a tuple of strings for caching
+    #data = tuple(data)
+    
     # north
     data = transpose([roll(row) for row in transpose(data)])
     #print('north')
@@ -40,12 +46,19 @@ def cycle(data):
     #print('east')
     #print('\n'.join(data))
 
-    return data
+    return tuple(data)
+
+# Convert data to a tuple of strings for caching
+data = tuple(data)
 
 for i in range(1000000000):
-    new_data = cycle(data)
-    if new_data == data:
-        print('repeated after', i)
-        break
+    data = cycle(data)
+    if i % 1000000 == 0:
+        print(i, i/1000000000)
+    #new_data = cycle(data)
+    #if new_data == data:
+    #    print('repeated after', i)
+    #    break
+    #data = new_data
 
 print(score(data))
