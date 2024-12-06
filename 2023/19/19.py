@@ -1,6 +1,6 @@
 import re
 
-[workflow_list, parts_list] = [x.split('\n') for x in open("2023/19/input.txt").read().split('\n\n')]
+[workflow_list, parts_list] = [x.split('\n') for x in open("2023/19/test.txt").read().split('\n\n')]
 
 func_map = {'<': lambda x, y: x < y, '>': lambda x, y: x > y}
 
@@ -34,14 +34,7 @@ workflows = {name: [parse_rule(rule) for rule in rules.split(',')]
 
 parts = [parse_part(part) for part in parts_list]
 
-#print(workflows)
-#print(parts[0])
-#print(workflows['in'][1])
-#print(apply_rule(workflows['in'][1], parts[0]))
-
 # we will now create a state machine to process the parts
-# we will start in the 'in' state and progress through the states according to the rules
-# we will stop when we reach the 'A' or 'R' state
 def process_part(part, workflows):
     state = 'in'
     while state not in ['A', 'R']:
@@ -51,5 +44,29 @@ def process_part(part, workflows):
                 break
     return state
 
-print([process_part(part, workflows) for part in parts])
+#print([process_part(part, workflows) for part in parts])
 print(sum(sum(v for k, v in part.items()) for part in parts if process_part(part, workflows) == 'A'))
+
+# part 2
+# this would work if we had infinite time
+#print(sum(1 for x in range(1, 4001) 
+#          for m in range(1, 4001)
+#          if process_part({'x': x, 'm': m, 'a': 0, 's': 0}, workflows) == 'A'))
+
+# procedure: work backwards from state A to find the valid starting inputs
+
+possible_x = possible_m = possible_a = possible_s = range(1, 4001)
+possible = {}
+for cat in ['x', 'm', 'a', 's']: possible[cat] = range(1, 4001)
+#print(workflows)
+
+state = 'R'
+flows = [flow for flow in workflows if any(rule['new_flow'] == 'A' for rule in workflows[flow])]
+for flow in flows:
+    for rule in workflows[flow]:
+        if rule['new_flow'] == 'R':
+            print(rule)
+            if rule.get('cat') is None: continue
+            possible[rule['cat']] = [x for x in possible[rule['cat']] if func_map[rule['func']](x, rule['lim'])]
+    
+print(len(possible['x']) * len(possible['m']) * len(possible['a']) * len(possible['s']))
