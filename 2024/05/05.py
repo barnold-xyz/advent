@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 [rule_list, pages_list] = [x.split('\n') for x in open("2024/05/input.txt").read().split('\n\n')]
 rule_list = [x.split('|') for x in rule_list]
 pages_list = [x.split(',') for x in pages_list]
@@ -25,8 +27,22 @@ def check_order(pages):
 def middle_page(pages):
     return int(pages[len(pages) // 2])
 
+def compare_pages(p1, p2):
+    if rules.get(p1) is not None:
+        if p2 in rules[p1]:
+            return -1
+    if rules.get(p2) is not None:
+        if p1 in rules[p2]:
+            return 1
+    return 0
+    
 def part1():
     pages_in_order = [check_order(pages) for pages in pages_list] 
     return sum(middle_page(pages) for pages, in_order in zip(pages_list, pages_in_order) if in_order)
 
+def part2():
+    pages_in_order = [check_order(pages) for pages in pages_list] 
+    return sum(middle_page(sorted(pages, key=cmp_to_key(compare_pages))) for pages, in_order in zip(pages_list, pages_in_order) if not in_order)
+
 print(part1())
+print(part2())
