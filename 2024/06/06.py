@@ -22,7 +22,7 @@ def run_sim(grid, guard_pos, dir):
     steps = 0
     cells_visited = set()
     cells_plus_dir = set()
-    while True: # and steps < 15:
+    while True: 
         if (guard_pos, dir) in cells_plus_dir:
             return {'outcome': 0, 'cells': cells_visited}
 
@@ -46,21 +46,18 @@ def part1(grid, guard_pos, dir):
     result = run_sim(grid, guard_pos, dir)
     print(len(result['cells']))
 
+# this is slow but it works
 def part2(grid, guard_pos, dir):
-    print(f'grid dimensions: {max(x for x, y in grid.keys()) + 1} x {max(y for x, y in grid.keys()) + 1}')
-    #results = {}
     loop_count = 0
     for y in range(max(y for x, y in grid.keys()) + 1):
         for x in range(max(x for x, y in grid.keys()) + 1):
-            print(f'checking {x}, {y}')
             new_grid = grid.copy()
             new_grid[(x, y)] = '#'
             results = run_sim(new_grid, guard_pos, dir)
             if results['outcome'] == 0:
                 loop_count += 1
 
-    #print(results[(3, 6)])
     print(loop_count)
-    
+
 part1(grid, guard_pos, dir)
 part2(grid, guard_pos, dir)
