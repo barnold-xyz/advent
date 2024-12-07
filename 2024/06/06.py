@@ -6,12 +6,11 @@ moves = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 guard_pos = next((pos for pos, char in grid.items() if char in dirs))
 dir = grid[guard_pos]
 grid[guard_pos] = '.'
-visted = set()
 
-def print_grid():
+def print_grid(grid, guard_pos, dir):
     print()
-    for y in range(10):
-        for x in range(10):
+    for y in range(max(y for x, y in grid.keys()) + 1):
+        for x in range(max(x for x, y in grid.keys()) + 1):
             if (x, y) == guard_pos:
                 print(dir, end='')
             else:
@@ -19,20 +18,49 @@ def print_grid():
         print()
     print()
 
-steps = 0
-while True: # and steps < 15:
-    visted.add(guard_pos)
+def run_sim(grid, guard_pos, dir):
+    steps = 0
+    cells_visited = set()
+    cells_plus_dir = set()
+    while True: # and steps < 15:
+        if (guard_pos, dir) in cells_plus_dir:
+            return {'outcome': 0, 'cells': cells_visited}
 
-    # attempt to move forward
-    dr, dc = moves[dirs.index(dir)]
-    new_pos = (guard_pos[0] + dr, guard_pos[1] + dc)
-    if grid.get(new_pos) is None:  break
+        cells_visited.add(guard_pos)
+        cells_plus_dir.add((guard_pos, dir))
 
-    if grid[new_pos] == '#':  # turn
-        dir = dirs[(dirs.index(dir) + 1) % len(dirs)]
-    else:
-        guard_pos = new_pos
-    steps += 1
-    print_grid()
+        # attempt to move forward
+        dr, dc = moves[dirs.index(dir)]
+        new_pos = (guard_pos[0] + dr, guard_pos[1] + dc)
+        if grid.get(new_pos) is None:  
+            return {'outcome': 1, 'cells': cells_visited}
+
+        if grid[new_pos] == '#':  # turn
+            dir = dirs[(dirs.index(dir) + 1) % len(dirs)]
+        else:
+            guard_pos = new_pos
+        steps += 1
+        #print_grid(grid, guard_pos, dir)
     
-print(len(visted))  
+def part1(grid, guard_pos, dir):
+    result = run_sim(grid, guard_pos, dir)
+    print(len(result['cells']))
+
+def part2(grid, guard_pos, dir):
+    print(f'grid dimensions: {max(x for x, y in grid.keys()) + 1} x {max(y for x, y in grid.keys()) + 1}')
+    #results = {}
+    loop_count = 0
+    for y in range(max(y for x, y in grid.keys()) + 1):
+        for x in range(max(x for x, y in grid.keys()) + 1):
+            print(f'checking {x}, {y}')
+            new_grid = grid.copy()
+            new_grid[(x, y)] = '#'
+            results = run_sim(new_grid, guard_pos, dir)
+            if results['outcome'] == 0:
+                loop_count += 1
+
+    #print(results[(3, 6)])
+    print(loop_count)
+    
+part1(grid, guard_pos, dir)
+part2(grid, guard_pos, dir)
