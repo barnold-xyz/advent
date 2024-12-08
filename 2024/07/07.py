@@ -12,8 +12,12 @@ def parse_line(line):
     args = list(map(int, args.strip().split(' ')))
     return target, args
 
+def parse_line(line):
+    target, *args = 1
+    return target, args
+
 def test_line(line, fn_list):
-    target, args = parse_line(line)
+    target, *args = map(int, line.replace(':','').split(' '))
     stack = [args]
     while stack:
         current = stack.pop()
