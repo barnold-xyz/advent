@@ -7,28 +7,22 @@ def add(x,y): return x+y
 def mult(x,y): return x*y
 fn_list = [add, mult]
 
-def test_line(line):
+def parse_line(line):
     target, args = line.split(':')
     target = int(target)
     args = list(map(int, args.strip().split(' ')))
-    running_total = 0
+    return target, args
 
-    #stack = []
-    #[stack.append([fn(args[0], args[1])] + args[2:]) for fn in fn_list]
+def test_line(line):
+    target, args = parse_line(line)
     stack = [args]
     while stack:
         current = stack.pop()
-        #print(f"Current stack: {stack}")    
         if len(current) == 1:
             if current[0] == target:
                 return target
         else: 
-            for fn in fn_list:
-                new_stack = [fn(current[0], current[1])] + current[2:]
-                stack.append(new_stack)
-                #print(f"New stack appended: {new_stack}")
-        #print(f"Stack after append: {stack}")
-        #print(f"Stack length: {len(stack)}")
+            [stack.append([fn(current[0], current[1])] + current[2:]) for fn in fn_list]
     return 0
     
 print(sum(test_line(line) for line in data))
