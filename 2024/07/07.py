@@ -1,6 +1,3 @@
-from math import prod
-import itertools
-
 data = open("2024/07/input.txt").read().split('\n')
 
 def add(x,y): return x+y
