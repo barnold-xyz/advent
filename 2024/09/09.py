@@ -16,16 +16,13 @@ def disk_map_to_disk(disk_map):
 
 # naive implementation
 def compress(disk):
-    # start at the end of the disk
     for i in range(len(disk) - 1, 0, -1):
         file_id = disk[i]
-        #print(f'file_id: {file_id}')
         new_index = disk.index(EMPTY)
         if new_index >= i: 
             break
         disk[i] = EMPTY
         disk[new_index] = file_id
-        #print(''.join(disk))
     return disk
 
 # naive again :(
@@ -64,4 +61,3 @@ def checksum(disk):
 disk = disk_map_to_disk(input)
 print(checksum(compress(disk.copy())))
 print(checksum(pt2(disk.copy())))
-pt2(disk)
