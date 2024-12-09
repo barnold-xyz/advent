@@ -1,6 +1,7 @@
 import re
+from collections import deque
 
-[workflow_list, parts_list] = [x.split('\n') for x in open("2023/19/test.txt").read().split('\n\n')]
+[workflow_list, parts_list] = [x.split('\n') for x in open("2023/19/input.txt").read().split('\n\n')]
 
 func_map = {'<': lambda x, y: x < y, '>': lambda x, y: x > y}
 
@@ -46,20 +47,89 @@ def process_part(part, workflows):
 
 #print([process_part(part, workflows) for part in parts])
 print(sum(sum(v for k, v in part.items()) for part in parts if process_part(part, workflows) == 'A'))
-
+print('starting part 2')
 # part 2
-# this would work if we had infinite time
-#print(sum(1 for x in range(1, 4001) 
-#          for m in range(1, 4001)
-#          if process_part({'x': x, 'm': m, 'a': 0, 's': 0}, workflows) == 'A'))
 
-# procedure: work backwards from state A to find the valid starting inputs
+# help from https://github.com/jonathanpaulson/AdventOfCode/blob/master/2023/19.py
+def new_range(op, n, lo, hi):
+    if op=='>':
+        lo = max(lo, n+1)
+    elif op=='<':
+     hi = min(hi, n-1)
+    elif op=='>=':
+     lo = max(lo, n)
+    elif op=='<=':
+      hi = min(hi, n)
+    else:
+      assert False
+    return (lo,hi)
 
-possible_x = possible_m = possible_a = possible_s = range(1, 4001)
-possible = {}
-for cat in ['x', 'm', 'a', 's']: possible[cat] = range(1, 4001)
-#print(workflows)
+def new_ranges(var, op, n, xl,xh,ml,mh,al,ah,sl,sh):
+    if var=='x':
+        xl,xh = new_range(op, n, xl, xh)
+    elif var=='m':
+      ml,mh = new_range(op, n, ml, mh)
+    elif var=='a':
+        al,ah = new_range(op, n, al, ah)
+    elif var=='s':
+       sl,sh = new_range(op, n, sl, sh)
+    return (xl,xh,ml,mh,al,ah,sl,sh)
 
+ans = 0
+Q = deque([('in', 1, 4000, 1, 4000, 1, 4000, 1,4000)])
+while Q:
+    state, xl, xh, ml, mh, al, ah, sl, sh = Q.pop()
+    if xl > xh or ml > mh or al > ah or sl > sh:
+        continue
+    if state == 'A':
+        score = (xh - xl + 1) * (mh - ml + 1) * (ah - al + 1) * (sh - sl + 1)
+        ans += score
+        continue
+    elif state == 'R':
+        continue
+    else:
+        for rule in workflows[state]:
+            res = rule['new_flow']
+            if rule.get('cat') is None:
+                Q.append((res, xl, xh, ml, mh, al, ah, sl, sh))
+                break
+            else:
+                var = rule['cat']
+                op = rule['func']
+                n = rule['lim']
+                Q.append((res, *new_ranges(var, op, n, xl, xh, ml, mh, al, ah, sl, sh)))
+                xl, xh, ml, mh, al, ah, sl, sh = new_ranges(var, '<=' if op == '>' else '>=', n, xl, xh, ml, mh, al, ah, sl, sh)
+
+print(ans)
+quit()
+# we will now create a state machine to process the parts
+def process_part(part, workflows):
+    state = 'in'
+    while state not in ['A', 'R']:
+        for rule in workflows[state]:
+            state = apply_rule(rule, part)
+            if state is not None:
+                break
+    return state
+
+cur_state = 'A'
+# find the rules that can feed into cur_state
+flows = {flow: rules for flow, rules in workflows.items() if any(rule['new_flow'] == cur_state for rule in rules)}
+for flow in flows:
+    rules = workflows[flow]
+    # find the rules that have to be failed to get to cur_state
+    pass_rule = [rule for rule in rules if rule['new_flow'] == cur_state]
+    fail_rules = rules[0:rules.index(pass_rule[0])]
+    print(f'flow: {flow}, pass_rule: {pass_rule}, fail_rules: {fail_rules}')
+
+    new_flows = [rule['new_flow'] for rule in fail_rules]
+
+
+
+
+
+
+'''
 state = 'R'
 flows = [flow for flow in workflows if any(rule['new_flow'] == 'A' for rule in workflows[flow])]
 for flow in flows:
@@ -70,3 +140,5 @@ for flow in flows:
             possible[rule['cat']] = [x for x in possible[rule['cat']] if func_map[rule['func']](x, rule['lim'])]
     
 print(len(possible['x']) * len(possible['m']) * len(possible['a']) * len(possible['s']))
+
+''' 
