@@ -77,12 +77,18 @@ def push_button():
     global pulse_count
     pending_pulses = [('lo', 'button', 'roadcaster')]
     while pending_pulses:
+        #print('=== pending pulses ===')
+        #for pulse in pending_pulses:
+        #    print(pulse)
+        #print('=== end pending pulses ===')
         pulse = pending_pulses.pop(0)
+        
         pulse_count += 1
         process_pulse(pulse, pending_pulses)
     print(pulse_count)
 
 push_button()
+quit()
 push_button()
 push_button()
 push_button()
