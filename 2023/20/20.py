@@ -22,7 +22,8 @@ def reset_graph():
     for c in conj:
         conj[c] = {name: 0 for name in graph if c in graph[name]}
 
-    graph.update({d: [] for name in graph for d in graph[name]  if d not in graph})
+    nodes_to_add = {d for name in graph for d in graph[name] if d not in graph}
+    graph.update({d: [] for d in nodes_to_add})
 
     counts = [0, 0]
     button_presses = 0
