@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 data = open("2023/21/test.txt").read()
+width = len(data.split('\n')[0])
+height = len(data.split('\n'))
 
 graph = {}
 # each entry in positions is a dict of (row, col) tuples that the elf could be at after each step and how many times
@@ -12,9 +14,6 @@ for row, line in enumerate(data.split('\n')):
         if cell == 'S':
             positions.append({(row, col): 1})
             graph[(row, col)] = '.'
-
-width = len(data.split('\n')[0])
-height = len(data.split('\n'))
 
 directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
@@ -31,13 +30,13 @@ def take_step_old(graph, positions):
     return list(set((row + d[0], col + d[1]) for row, col in positions for d in directions 
                     if graph.get((row + d[0], col + d[1]), '') == '.'))
 
-def take_step(graph, positions):
+def take_step(graph, cur_positions):
     new_positions = defaultdict(int)
-    for (row, col) in positions:
+    for (row, col), mult in cur_positions.items():
         for d in directions:
             new_row, new_col = row + d[0], col + d[1]
             if graph.get((new_row % height, new_col % width), '') == '.':
-                new_positions[(new_row, new_col)] += 1
+                new_positions[(new_row, new_col)] = 1
     return new_positions
 
 def walk(graph, positions, steps):
@@ -56,7 +55,7 @@ def test(graph, positions):
 
 def test2(graph, positions):
     for steps in [6, 10, 50, 100, 500, 1000, 5000]:
-        pos = walk(graph, positions, steps)
+        pos = walk(graph, positions.copy(), steps)
         print(f'steps: {steps}, len: {len(pos[-1])}')
 
 def pt1(graph, positions):
@@ -69,7 +68,12 @@ def pt2(graph, positions):
     print(len(positions[-1]))
 
 #test(graph, positions)
-print(len(walk(graph, positions, 500)[-1])); quit()
+#print(len(walk(graph, positions, 500)[-1])); quit()
+#test500 = walk(graph, positions, 500)
+#print(test500)
+#print(test500[-1])
+#print(sum(test500[-1].values()))
+#quit()
 test2(graph, positions); quit()
 pt1(graph, positions)
 pt2(graph, positions)
