@@ -1,5 +1,8 @@
 from collections import defaultdict
-data = open("2023/23/test.txt").read()
+from colorama import init, Fore, Back, Style
+init()
+
+data = open("2023/23/input.txt").read()
 
 grid = {(row, col): cell for row, line in enumerate(data.split('\n')) for col, cell in enumerate(line)}
 height = max(row for row, col in grid) + 1
@@ -9,10 +12,12 @@ directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 dir_map = {'^': (-1, 0), 'v': (1, 0), '<': (0, -1), '>': (0, 1)}
 #rev_dir_map = {'^': (1, 0), 'v': (-1, 0), '<': (0, 1), '>': (0, -1)}
 
-def print_map(grid, positions=[]):
+def print_map(grid, positions=[], highlight=[]):
     for row in range(height):
         for col in range(width):
-            if (row, col) in positions:
+            if (row, col) in highlight:
+                print(Fore.RED + grid[(row, col)] + Style.RESET_ALL, end='')
+            elif (row, col) in positions:
                 print('O', end='')
             else:
                 print(grid[(row, col)], end='')
@@ -102,28 +107,34 @@ def test():
     print(f'(5,3): {graph[(5,3)]}')
 
 graph = build_graph(grid, prune=True)
-test()
+#test()
 
 start = (0, 1)
 #end = (3,3)
 end = (height-1, width - 2)
 
 all_paths = find_all_paths(graph, start, end)
-#print(all_paths)
-for path in all_paths:
-    #print(len(path))
-    print(path[1])
+print(sorted(l for _, l in all_paths))
 
-def trace_path(graph, start, end, touched, total_len):
-    if start == end:
-        return touched, total_len
-    choices = graph[start]
-    if len(choices) == 0:
-        return [], -1
-    for neighbor, path_len in graph[start]:
-        if neighbor not in touched:
-            touched.add(neighbor)
-            path, l = trace_path(graph, neighbor, end, touched, total_len + path_len)
-            if l > 0:
-                return path, l
+def debug_pt_1():
+    all_paths = find_all_paths(graph, start, end)
+    for path, path_len in all_paths:
+        print(f'showing path for length {path_len}')
+        print_map(grid, path)
+        print()
+
+    # compare the first path to the one with length 81
+    print(sorted(l for _, l in all_paths))
+    path0 = next(path for path, length in all_paths if length == 94)
+    path1 = next(path for path, length in all_paths if length == 73)
+    path2 = next(path for path, length in all_paths if length == 81)
+    print(f'in path1 but not path2: {set(path1) - set(path2)}')
+    print(f'in path2 but not path1: {set(path2) - set(path1)}')
+    print(f'in both paths: {set(path1) & set(path2)}')
+    print(f'in path1 and path2 but not path0: {set(path1) & set(path2) - set(path0)}')
+
+    investigate = set(path1) & set(path2) - set(path0)
+    print_map(grid, highlight=list(investigate))
+    breakpoint() 
+    #print_map(grid, all_paths[0][0])
 
