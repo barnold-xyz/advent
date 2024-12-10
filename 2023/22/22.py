@@ -9,28 +9,18 @@ for brick in bricks:
 def fall_once(bricks):
     moved = False
     for brick in bricks:
-        can_fall = True
         (sx, sy, sz, ex, ey, ez) = brick
-        supporting_bricks = []
-        if sz == 1 or ez == 1:  # bricks laying on the ground can't fall
+        if(sz == 1 or ez == 1):
             continue
-
-        # check if there is a brick below, if not, move down
-        # a brick is below if it's x- or y- coordinates are between the x- and y- coordinates of the brick and the brick is one level below
-        for brick2 in bricks:
-            (sx2, sy2, sz2, ex2, ey2, ez2) = brick2
-            if ez2 == sz - 1: # brick2 is one level below brick, so it's a candidate
-                if (sx2 >= sx and sx2 <= ex) or (ex2 >= sx and ex2 <= ex) or \
-                    (sy2 >= sy and sy2 <= ey) or (ey2 >= sy and ey2 <= ey):
-                    can_fall = False
-                    supporting_bricks.append(brick2)
-        if can_fall:
+        supporting_bricks = find_supports(brick, bricks)
+        if len(supporting_bricks) == 0:
             brick[2] -= 1
             brick[5] -= 1
             moved = True
             break
         else:
-            print(f'brick: {brick}, supporting bricks: {supporting_bricks}')
+            #print(f'brick: {brick}, supporting bricks: {supporting_bricks}')
+            pass
     return moved, bricks
 
 def fall_all(bricks):
@@ -39,7 +29,6 @@ def fall_all(bricks):
         moved, bricks = fall_once(bricks)
     return bricks
 
-
 # for each brick, find the bricks that support it
 def find_supports(brick, bricks): 
     (sx, sy, sz, ex, ey, ez) = brick
@@ -47,21 +36,34 @@ def find_supports(brick, bricks):
     for brick2 in bricks:
         (sx2, sy2, sz2, ex2, ey2, ez2) = brick2
         if ez2 == sz - 1: # brick2 is one level below brick, so it's a candidate
-            if (sx2 >= sx and sx2 <= ex) or (ex2 >= sx and ex2 <= ex) or \
-                (sy2 >= sy and sy2 <= ey) or (ey2 >= sy and ey <= ey):
+            if ((sx2 >= sx and sx2 <= ex) or (ex2 >= sx and ex2 <= ex)) and \
+                ((sy2 >= sy and sy2 <= ey) or (ey2 >= sy and ey <= ey)):
                 supporting_bricks.append(brick2)
     return supporting_bricks
 
 def find_all_supports(bricks):
-    supports = {}
+    brick_to_supporters = {}
     for brick in bricks:
-        supports[tuple(brick)] = find_supports(brick, bricks)
-    return supports
+        brick_to_supporters[tuple(brick)] = find_supports(brick, bricks)
+    return brick_to_supporters
 
-def find_necessary_bricks(bricks, supports):
-    return [li for li in supports.values() if li in bricks]
+[print(brick) for brick in bricks]
+print('............')
+bricks2 = fall_all(bricks.copy())
+[print(brick) for brick in bricks2]
+print('............')
+supports = find_all_supports(bricks2)
+[print(f'{brick}: {supporters}') for brick, supporters in supports.items()]
+print('............')
 
-bricks = fall_all(bricks)
-supports = find_all_supports(bricks)
-temp = [support for support in supports.values() if len(support) == 1]
-print(temp)
+# looking for the bricks that are the sole support for another brick
+def find_sole_supports(bricks, supports):
+    sole_supports = []
+    for brick, supporters in supports.items():
+        if len(supporters) == 1:
+            sole_supports.append(brick)
+    return sole_supports
+
+sole_supports = find_sole_supports(bricks2, supports)
+print(f'sole supports: {sole_supports}')
+print(f'len bricks: {len(bricks2)}, len sole supports: {len(sole_supports)}')
