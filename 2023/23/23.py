@@ -2,14 +2,17 @@ from collections import defaultdict
 from colorama import init, Fore, Back, Style
 init()
 
+directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+dir_map = {'^': (-1, 0), 'v': (1, 0), '<': (0, -1), '>': (0, 1)}
+
 data = open("2023/23/input.txt").read()
 
 grid = {(row, col): cell for row, line in enumerate(data.split('\n')) for col, cell in enumerate(line)}
+grid_pt2 = {k: '.' if v in dir_map else v for k, v in grid.items()}
+
 height = max(row for row, col in grid) + 1
 width = max(col for row, col in grid) + 1
 
-directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-dir_map = {'^': (-1, 0), 'v': (1, 0), '<': (0, -1), '>': (0, 1)}
 #rev_dir_map = {'^': (1, 0), 'v': (-1, 0), '<': (0, 1), '>': (0, -1)}
 
 def print_map(grid, positions=[], highlight=[]):
@@ -30,7 +33,7 @@ def build_graph(grid, prune=True):
     graph = defaultdict(list)
     for row in range(height):
         for col in range(width):
-            debug = row == 3 and col == 3
+            #debug = row == 3 and col == 3
             cell = grid[(row, col)]
             if cell == '#':
                 continue
@@ -96,8 +99,6 @@ def find_all_paths(graph, start, end, path=[], path_length=0):
                 paths.append(p)
     return paths
 
-
-
 def test():
     print_map(grid)
     print()
@@ -106,15 +107,17 @@ def test():
     print(f'(4,3): {graph[(4,3)]}')
     print(f'(5,3): {graph[(5,3)]}')
 
-graph = build_graph(grid, prune=True)
-#test()
-
 start = (0, 1)
-#end = (3,3)
 end = (height-1, width - 2)
 
+graph = build_graph(grid, prune=True)
 all_paths = find_all_paths(graph, start, end)
 print(sorted(l for _, l in all_paths))
+
+graph_pt2 = build_graph(grid_pt2, prune=True)
+all_paths_pt2 = find_all_paths(graph_pt2, start, end)
+print(f'number of paths: {len(all_paths_pt2)}')
+print(f' max path length: {max(l for _, l in all_paths_pt2)}')
 
 def debug_pt_1():
     all_paths = find_all_paths(graph, start, end)
@@ -135,6 +138,7 @@ def debug_pt_1():
 
     investigate = set(path1) & set(path2) - set(path0)
     print_map(grid, highlight=list(investigate))
+    print()
+    print_map(grid, highlight=[start, end])
     breakpoint() 
     #print_map(grid, all_paths[0][0])
-
