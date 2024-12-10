@@ -58,11 +58,7 @@ print('............')
 
 # looking for the bricks that are the sole support for another brick
 def find_sole_supports(bricks, supports):
-    sole_supports = []
-    for brick, supporters in supports.items():
-        if len(supporters) == 1:
-            sole_supports.append(brick)
-    return sole_supports
+    return [supporters for brick, supporters in supports.items() if len(supporters) == 1]
 
 sole_supports = find_sole_supports(bricks2, supports)
 print(f'sole supports: {sole_supports}')
