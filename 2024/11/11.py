@@ -1,5 +1,8 @@
-from collections import defaultdict
+import cProfile
+import pstats
+import io
 import copy
+from collections import defaultdict
 
 #data = '125 17'
 data = '890 0 1 935698 68001 3441397 7221 27'
@@ -111,34 +114,34 @@ class StoneGraph:
     def add_edge(self, src, dest):
         self.nodes[src].add_edge(dest)
 
-    def blink_node(self, node):
+    def blink_node(self, node, times=1):
         if node.times == 0:
             return
         if node.value == 0:
-            self.add_node(1, 1)
-            self.add_edge(node.value, 1)
-            node.times -= 1
+            self.add_node(1, times)
+            self.add_edge(node.value, times)
+            node.times -= times
         elif len(str(node.value)) % 2 == 0:
             s = str(node.value)
             l = len(s) // 2
             n1 = int(s[0:l])
             n2 = int(s[l:])
-            self.add_node(n1, 1)
-            self.add_node(n2, 1)
+            self.add_node(n1, times)
+            self.add_node(n2, times)
             self.add_edge(node.value, n1)
             self.add_edge(node.value, n2)
-            node.times -= 1
+            node.times -= times
         else:
-            self.add_node(node.value * 2024, 1)
+            self.add_node(node.value * 2024, times)
             self.add_edge(node.value, node.value * 2024)
-            node.times -= 1
+            node.times -= times
 
     def blink(self):
         # Create a copy of the nodes to avoid modifying the dictionary while iterating
         nodes_copy = copy.deepcopy(list(self.nodes.values()))
         for node in nodes_copy:
-            for _ in range(node.times):
-                self.blink_node(self.nodes[node.value])
+            #for _ in range(node.times):
+                self.blink_node(self.nodes[node.value], node.times)
 
     def __print__(self):
         for node in self.nodes.values():
@@ -154,69 +157,33 @@ class StoneGraph:
         print(f'length: {len(self)}')
         print('---')
 
-
-def part2(data):
+def part1(data):
     stones = StoneGraph()
     [stones.add_node(int(s)) for s in data.split()]
 
     for i in range(1, 25+1):
         stones.blink()
-        print(f'iteration {i}, length={len(stones)}')
+        print(f'iteration {i}, length={len(stones)}, nodes={len(stones.nodes)}')
 
+def part2(data):
+    stones = StoneGraph()
+    [stones.add_node(int(s)) for s in data.split()]
+
+    for i in range(1, 75+1):
+        stones.blink()
+        print(f'iteration {i}, length={len(stones)}, nodes={len(stones.nodes)}')
+
+part1(data)
+
+# Profile the part2 function
+pr = cProfile.Profile()
+pr.enable()
 part2(data)
-quit()
+pr.disable()
 
-stones = StoneGraph()
-stones.add_node(125)
-stones.add_node(17)
-#stones.add_node(2024)
-for i in range(1, 25+1):
-    stones.blink()
-    print(f'iteration {i}: length={len(stones)}')
-    #stones.printme()
-
-quit()
-# Example usage
-stones = StoneGraph()
-stones.add_node(0)
-stones.blink()
-stones.printme()
-stones.blink()
-stones.printme()
-stones.blink()
-stones.printme()
-stones.blink()
-stones.printme()
-stones.blink()
-stones.printme()
-quit()
-
-
-#loops_til_2024()
-
-# strategy: create two data structures. The first is a map from starting stone to the list of stones generated after each iteration
-# the second keeps track of how many times we have seen each number and what iteration it is on
-# then we can find the length of the list after 75 iterations without actually generating the list
-def part2(stones):
-
-
-    seen = defaultdict(int)
-    for i in range(0, 3+1):
-        new_stones = []
-        for s in stones:
-            if seen[s] > 0:
-                seen[s] += 1
-                continue
-            else:
-                next_stones = apply_rule(s)
-                new_stones.extend(next_stones)
-                seen[s] += 1
-        print(f'iteration {i}, stones={stones}')
-        stones = new_stones
-    #[print(f'{k}: {v}') for k,v in seen.items()]
-    print(sum(seen.values()))
-
-#part2(stones)
-#investigate()
-#pt1(stones)
-#pt2(stones)
+# Print profiling results
+s = io.StringIO()
+sortby = 'cumulative'
+ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+ps.print_stats()
+print(s.getvalue())
