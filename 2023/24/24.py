@@ -38,27 +38,10 @@ def test_intersection(a, b, lbound, ubound):
     if not lbound <= intersection[1] <= ubound:
         return False
     
-    # check that it's forward in time for a
-    if avx > 0 and intersection[0] < ax:
-        return False
-    if avx < 0 and intersection[0] > ax:
-        return False
-    if avy > 0 and intersection[1] < ay:
-        return False
-    if avy < 0 and intersection[1] > ay:
-        return False
-    
-    # check that it's forward in time for b
-    if bvx > 0 and intersection[0] < bx:
-        return False
-    if bvx < 0 and intersection[0] > bx:
-        return False
-    if bvy > 0 and intersection[1] < by:
-        return False
-    if bvy < 0 and intersection[1] > by:
-        return False
-    
-    return True
+    time_a = (intersection[0] - ax) / avx
+    time_b = (intersection[0] - bx) / bvx
+
+    return time_a > 0 and time_b > 0
 
 def test(data):
     lbound = 7
