@@ -69,7 +69,7 @@ def build_graph(grid, prune=True):
             if is_chain_node(node):
                 chain = find_chain(node)
                 start, end = chain[0], chain[-1]
-                if start != end:
+                if start != end and len(chain) > 3:
                     total_length = len(chain) - 1
                     graph[start] = [(n, l) for n, l in graph[start] if n != chain[1]]
                     graph[end] = [(n, l) for n, l in graph[end] if n != chain[-2]]
@@ -85,18 +85,17 @@ def build_graph(grid, prune=True):
     return graph
 
 
-def find_all_paths(graph, start, end, path=[], path_length=0):
-    path = path + [start]
-    if start == end:
-        return [(path, path_length)]
-    if start not in graph:
-        return []
+def find_all_paths(graph, start, end):
+    stack = [(start, [start], 0)]
     paths = []
-    for node, length in graph[start]:
-        if node not in path:
-            new_paths = find_all_paths(graph, node, end, path, path_length + length)
-            for p in new_paths:
-                paths.append(p)
+    while stack:
+        (vertex, path, path_length) = stack.pop()
+        for next_vertex, length in graph[vertex]:
+            if next_vertex not in path:
+                if next_vertex == end:
+                    paths.append((path + [next_vertex], path_length + length))
+                else:
+                    stack.append((next_vertex, path + [next_vertex], path_length + length))
     return paths
 
 def test():
@@ -111,10 +110,12 @@ start = (0, 1)
 end = (height-1, width - 2)
 
 graph = build_graph(grid, prune=True)
+#graph = build_graph(grid, prune=False)
 all_paths = find_all_paths(graph, start, end)
 print(sorted(l for _, l in all_paths))
 
-graph_pt2 = build_graph(grid_pt2, prune=True)
+#graph_pt2 = build_graph(grid_pt2, prune=True)
+graph_pt2 = build_graph(grid_pt2, prune=False)
 all_paths_pt2 = find_all_paths(graph_pt2, start, end)
 print(f'number of paths: {len(all_paths_pt2)}')
 print(f' max path length: {max(l for _, l in all_paths_pt2)}')
