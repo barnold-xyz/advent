@@ -12,8 +12,8 @@ for line in data:
         G.add_edge(node, neighbor)
 
 # Draw the original graph
-nx.draw(G, with_labels=True, font_size=6)
-plt.show()
+#nx.draw(G, with_labels=True, font_size=6)
+#plt.show()
 
 # Remove specified edges
 G.remove_edge('hgk', 'pgz')

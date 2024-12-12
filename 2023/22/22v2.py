@@ -73,11 +73,25 @@ def fall_max(b, bricks):
     return bricks, fell
 
 def fall_all(bricks):
-    fell = True
-    while fell:
-        for b in bricks:
-            bricks, fell = fall_max(b, bricks)
-    return bricks, fell
+    num_fell = 0
+    while True:
+        can_fall = []
+        for b in sorted(bricks, key=lambda x: bricks[x][2], reverse=True):
+            (sx, sy, sz, ex, ey, ez) = bricks[b]
+            if sz > 1 and ez > 1:
+                supporting_bricks = find_supports(b, bricks)
+                if len(supporting_bricks) == 0:
+                    can_fall.append(b)
+        
+        if not can_fall:
+            break
+        
+        for b in can_fall:
+            (sx, sy, sz, ex, ey, ez) = bricks[b]
+            bricks[b] = (sx, sy, sz-1, ex, ey, ez-1)
+        num_fell += len(can_fall) 
+    
+    return bricks, bool(can_fall), num_fell
 
 # returns True if nothing falls after the brick is removed
 def can_disintegrate(b, bricks):
@@ -93,9 +107,28 @@ def can_disintegrate2(b, supports):
     print(f'dependents for {b}: {dependents}')
     return len(dependents) == 0
 
+# how many bricks will fall if the given brick is removed
+# strategy: remove the brick, then check how many bricks can fall
+# but only remove 1 brick at a time
+def chain_reaction(bricks, supports):
+    fell = {}
+    for b in bricks:
+        disintegrated = set(b)
+        fell[b] = []
+        while True:
+            new_disintegrated = [d for d in bricks if (not d in disintegrated) and set(supports[d]) in disintegrated]
+            if not new_disintegrated:
+                break
+            print(f'{disintegrated} disintegrated, {new_disintegrated} fell')
+            disintegrated.update(new_disintegrated)
+        fell[b].append(disintegrated)
+
+    return fell
+
+
 #print_both(bricks)
 print('dropping bricks')
-bricks, _ = fall_all(bricks)
+bricks, *_ = fall_all(bricks)
 #print_both(bricks)
 print('finding supports')
 supports = find_all_supports(bricks)
@@ -107,6 +140,8 @@ print("disintegrating bricks")
 dis2 = {b:can_disintegrate2(b, supports) for b in bricks}
 print(dis2)
 print(sum(dis2.values()))
+rxn = chain_reaction(bricks, supports)
+print(sum(rxn.values()))
 
 
 #print(sum(can_disintegrate(b, bricks) for b in bricks))
