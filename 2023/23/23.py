@@ -5,7 +5,7 @@ init()
 directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 dir_map = {'^': (-1, 0), 'v': (1, 0), '<': (0, -1), '>': (0, 1)}
 
-data = open("2023/23/input.txt").read()
+data = open("2023/23/test.txt").read()
 
 grid = {(row, col): cell for row, line in enumerate(data.split('\n')) for col, cell in enumerate(line)}
 grid_pt2 = {k: '.' if v in dir_map else v for k, v in grid.items()}
@@ -102,6 +102,7 @@ def compress_graph(grid):
     # Create a compressed graph by finding intersection points
     graph = defaultdict(list)
     intersections = set()
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
 
     # Find intersection points (nodes with more than 2 neighbors)
     for (row, col), cell in grid.items():
@@ -116,74 +117,72 @@ def compress_graph(grid):
         
         if neighbors > 2:
             intersections.add((row, col))
+    
+    print(f"Intersections found: {intersections}")
 
-    # Find paths between intersections
-    def find_path_length(start, visited):
-        queue = [(start, 0)]
-        while queue:
-            current, length = queue.pop(0)
-            
-            if current in intersections and current != start:
-                return current, length
-            
-            for dr, dc in directions:
-                next_pos = (current[0] + dr, current[1] + dc)
-                
-                if (grid.get(next_pos, '#') != '#' and 
-                    next_pos not in visited):
-                    new_visited = visited.copy()
-                    new_visited.add(next_pos)
-                    queue.append((next_pos, length + 1))
-        
-        return None, -1
-
-    # Build compressed graph
-    for intersection in intersections:
+    # Connect intersections
+    for (row, col) in intersections:
         for dr, dc in directions:
-            start = (intersection[0] + dr, intersection[1] + dc)
-            if grid.get(start, '#') != '#':
-                end, length = find_path_length(start, {intersection})
-                if end and end != intersection:
-                    graph[intersection].append((end, length))
-
+            path_length = 0
+            cur_pos = (row + dr, col + dc)
+            while grid.get(cur_pos, '#') != '#':
+                path_length += 1
+                cur_pos = (cur_pos[0] + dr, cur_pos[1] + dc)
+                if cur_pos in intersections:
+                    graph[(row, col)].append((cur_pos, path_length))
+                    graph[cur_pos].append(((row, col), path_length))
+                    break
+                if grid.get(cur_pos, '#') == '#':
+                    break
+    
+    print(f"Compressed graph: {dict(graph)}")
     return graph
 
 def find_longest_path(graph, start, end):
-    # Memoization cache to store computed path lengths
+    # Initialize memoization dictionary
     memo = {}
-    
-    def dfs(node, visited):
-        # Create a hashable representation of the visited set
+
+    # Stack to simulate recursion
+    stack = [(start, {start}, 0)]  # (current node, visited nodes, current path length)
+    max_length = float('-inf')
+    total_nodes = len(graph)
+
+    while stack:
+        node, visited, path_length = stack.pop()
         visited_key = frozenset(visited)
-        
-        # Check if we've already computed this path
-        if (node, visited_key) in memo:
-            return memo[(node, visited_key)]
-        
-        # If we've reached the end, return 0
+
+        # If we've reached the end, update max_length
         if node == end:
-            return 0
-        
+            max_length = max(max_length, path_length)
+            print(f"Found path from {start} to {end} with length {path_length}, max_length: {max_length}")
+            continue
+
+        # If the result is already memoized, use it
+        if (node, visited_key) in memo:
+            max_length = max(max_length, path_length + memo[(node, visited_key)])
+            continue
+
+        # Calculate the number of nodes left to visit
+        nodes_left = total_nodes - len(visited)
+
+        # If the potential maximum path length is less than the current max_length, skip this path
+        if path_length + nodes_left <= max_length:
+            print(f"Skipping path from {node} with length {path_length} and {nodes_left} nodes left")
+            continue
+
         # Explore all possible next nodes
-        max_length = float('-inf')
         for next_node, length in graph[node]:
             if next_node not in visited:
                 # Create a new visited set
                 new_visited = visited | {next_node}
                 
-                # Recursively find the longest path
-                sub_path = dfs(next_node, new_visited)
-                
-                # Update max length if a valid path is found
-                if sub_path != float('-inf'):
-                    max_length = max(max_length, sub_path + length)
-        
-        # Memoize and return the result
-        memo[(node, visited_key)] = max_length
-        return max_length
+                # Push the next state onto the stack
+                stack.append((next_node, new_visited, path_length + length))
 
-    # Find the longest path starting from the start node
-    return dfs(start, {start})
+        # Memoize the result
+        memo[(node, visited_key)] = max_length - path_length
+
+    return max_length
 
 # Prepare the grid (removing slope restrictions)
 grid_pt2 = {k: '.' if v in dir_map else v for k, v in grid.items()}
@@ -193,11 +192,15 @@ start = (0, 1)
 end = (height-1, width - 2)
 
 # Compress the graph
-compressed_graph = compress_graph(grid_pt2)
-
+print('Compressing graph...')
+#compressed_graph = compress_graph(grid_pt2)
+compressed_graph = build_graph(grid_pt2, prune=False)
 # Find the longest path
+print('Finding longest path...')
 longest_path = find_longest_path(compressed_graph, start, end)
 print(f"Longest path in Part 2: {longest_path}")
+
+quit()
 
 graph = build_graph(grid, prune=True)
 #graph = build_graph(grid, prune=False)
@@ -209,7 +212,7 @@ graph_pt2 = build_graph(grid_pt2, prune=False)
 #all_paths_pt2 = find_all_paths(graph_pt2, start, end)
 #print(f'number of paths: {len(all_paths_pt2)}')
 #print(f' max path length: {max(l for _, l in all_paths_pt2)}')
-longest_path = find_longest_path_iterative(graph_pt2, start, end)
+#longest_path = find_longest_path_iterative(graph_pt2, start, end)
 print(f'longest path: {longest_path}')
 
 def debug_pt_1():
