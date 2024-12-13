@@ -141,7 +141,7 @@ dis2 = {b:can_disintegrate2(b, supports) for b in bricks}
 print(dis2)
 print(sum(dis2.values()))
 rxn = chain_reaction(bricks, supports)
-print(sum(rxn.values()))
+print(sum(len(r) for r in rxn.values()))
 
 
 #print(sum(can_disintegrate(b, bricks) for b in bricks))
