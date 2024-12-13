@@ -5,7 +5,7 @@ init()
 directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 dir_map = {'^': (-1, 0), 'v': (1, 0), '<': (0, -1), '>': (0, 1)}
 
-data = open("2023/23/test.txt").read()
+data = open("2023/23/input.txt").read()
 
 grid = {(row, col): cell for row, line in enumerate(data.split('\n')) for col, cell in enumerate(line)}
 grid_pt2 = {k: '.' if v in dir_map else v for k, v in grid.items()}
