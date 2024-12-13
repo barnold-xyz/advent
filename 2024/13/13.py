@@ -18,7 +18,5 @@ def solve_presses(machine, part2=False):
         return 0, 0 
     return x, y
 
-solutions = [solve_presses(machine) for machine in machines]
-print('part 1:', sum(3*s[0] + 1*s[1] for s in solutions))
-solutions_pt2 = [solve_presses(machine, part2=True) for machine in machines]
-print('part 2:', sum(3*s[0] + 1*s[1] for s in solutions_pt2))
+print(sum(3*s[0] + 1*s[1] for s in [solve_presses(machine) for machine in machines]))
+print(sum(3*s[0] + 1*s[1] for s in [solve_presses(machine, part2=True) for machine in machines]))
