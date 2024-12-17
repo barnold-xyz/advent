@@ -1,0 +1,22 @@
+Register A: 47719761
+Register B: 0
+Register C: 0
+
+Program: 
+2,4, --> B = A % 8
+1,5, --> B = B ^ 5
+7,5, --> C = A // 2^B
+0,3, --> A = A // 8
+4,1, --> B = B ^ C
+1,6, --> B = B ^ 6
+5,5, --> print B % 8  --> prints the last 3 binary digits of b
+3,0  --> while A > 0
+
+2415750341165530
+
+to print the last 0:
+0 + quit => A == 0
+b % 8 = 0 so b is multiple of 8
+b = b ^ 6 so b is 8i + 6 for some i
+b = b ^ c OH NO
+A = A // 8 so A must have been 0-7

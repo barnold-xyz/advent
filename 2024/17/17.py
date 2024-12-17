@@ -22,11 +22,8 @@ class Program:
         self.B = self.B ^ literal
     def bst(self, operand):  # opcode 2
         self.B = self.get_combo(operand) & 0b111
-        print(f'in bst, operand: {operand}, B: {self.B}, combo_map: {self.get_combo(operand)}')
-        print(f'combo_map: {self.combo_map}')
     def jnz(self, operand):  # opcode 3
-        if self.A != 0:
-            self.inst_pointer = operand - 2
+        if self.A != 0: self.inst_pointer = operand - 2
     def bxc(self, operand):  # opcode 4
         self.B = self.B ^ self.C
     def out(self, operand):  # opcode 5
@@ -51,8 +48,7 @@ class Program:
         while self.inst_pointer < len(inst):
             opcode = inst[self.inst_pointer]
             operand = inst[self.inst_pointer + 1]
-
-            print(f'running op {opcode} with operand {operand}')
+            # print(f'running op {opcode} with operand {operand}')
             self.ops[opcode](operand)
             self.inst_pointer += 2
         return self.output
@@ -78,7 +74,25 @@ If register B contains 2024 and register C contains 43690, the program 4,0 would
     print(prog.run_program(B=2024, C=43690, inst=[4,0]))
     print(prog)
 
+# tip of the hat to https://github.com/ypisetsky/advent-of-code/blob/main/yr2024/day17.py
+def find_quine(prog, cursor, current_a):
+    for candidate in range(8):
+        a = candidate + current_a*8
+        prog_result = prog.run_program(A=a)
+        if prog_result == prog.inst[cursor:]:
+            # print(f'found a match for {a}\t\t{oct(a)} at cursor {cursor}. prog_result: {prog_result}')
+            if cursor == 0: 
+                return a
+            else:
+                ret = find_quine(prog, cursor-1, a)
+                if ret is not None: 
+                    return ret
+    return None
+
 prog = Program(open("2024/17/input.txt").read().splitlines())
-print(prog.run_program())
-print(prog)
-print('part 1:\n', ','.join(map(str, prog.output)))
+prog.run_program()
+print('part 1: ', ','.join(map(str, prog.output)))
+
+prog = Program(open("2024/17/input.txt").read().splitlines())
+print('part 2: ', find_quine(prog, len(prog.inst)-1, 0))
+            
