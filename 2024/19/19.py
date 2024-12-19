@@ -11,7 +11,7 @@ def dfs(towels, design):
         if design.startswith(t):
             count += dfs(towels, design[len(t):])
     return count
-            
+
 results = [dfs(tuple(towels), design) for design in designs]
 print('part 1:', sum(1 for result in results if result > 0))
 print('part 2:', sum(results))
