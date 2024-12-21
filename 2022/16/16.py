@@ -4,7 +4,7 @@ import heapq
 graph = {}
 flows = {}
 
-data = open('2022/16/input.txt').read().split('\n')
+data = open('2022/16/test.txt').read().split('\n')
 for line in data:
     node_str, edge_str = line.split('; ')
     node, flow = node_str.replace('Valve ','').replace(' has flow rate=',',').split(',')
@@ -95,8 +95,6 @@ def best_flow(flow_values, distances, start_node, max_steps):
         candidates = []
         for node in flow_values:
             if node not in activated_nodes:
-                if not 'AA' in distances[current_node]:
-                    breakpoint()
                 dist = distances[current_node][node]
                 if remaining_steps > dist + 1:  # Only consider nodes reachable within remaining steps
                     potential_flow = flow_values[node] * (remaining_steps - (dist + 1))
@@ -128,9 +126,108 @@ def best_flow(flow_values, distances, start_node, max_steps):
     backtrack(start_node, max_steps, set(), 0)
     return best_cumulative_flow
 
+def best_flow_two_agents(flow_values, distances, start_node, max_steps):
+    """
+    Optimized function for maximizing cumulative flow with two agents using memoization.
+    
+    flow_values: dict, flow value of each node {node: flow_value}
+    distances: dict, precomputed distances between all pairs of nodes {node1: {node2: dist}}
+    start_node: str, starting node in the graph
+    max_steps: int, maximum number of steps allowed for each agent
+    """
+    best_cumulative_flow = 0
+    memo = {}
+
+    def upper_bound(remaining_steps1, remaining_steps2, activated_nodes):
+        # Calculate the maximum possible flow from unactivated nodes
+        unactivated = [
+            flow_values[node] for node in flow_values if node not in activated_nodes
+        ]
+        unactivated.sort(reverse=True)
+        potential_flow = 0
+        steps = max(remaining_steps1, remaining_steps2)
+        for flow in unactivated:
+            if steps <= 1:
+                break
+            potential_flow += flow * (steps - 1)
+            steps -= 1
+        return potential_flow
+
+    def backtrack(agent1_pos, agent2_pos, remaining_steps1, remaining_steps2, activated_nodes, cumulative_flow):
+        nonlocal best_cumulative_flow
+
+        # Canonicalize state representation
+        if agent1_pos > agent2_pos or (agent1_pos == agent2_pos and remaining_steps1 < remaining_steps2):
+            agent1_pos, agent2_pos = agent2_pos, agent1_pos
+            remaining_steps1, remaining_steps2 = remaining_steps2, remaining_steps1
+
+        # Memoization state
+        state = (agent1_pos, agent2_pos, remaining_steps1, remaining_steps2, frozenset(activated_nodes))
+        if state in memo and memo[state] >= cumulative_flow:
+            return
+        memo[state] = cumulative_flow
+
+        # Update the best cumulative flow
+        best_cumulative_flow = max(best_cumulative_flow, cumulative_flow)
+
+        # Prune if the upper bound cannot beat the best solution
+        if cumulative_flow + upper_bound(remaining_steps1, remaining_steps2, activated_nodes) <= best_cumulative_flow:
+            return
+
+        # Generate candidates for both agents
+        candidates1 = []
+        if remaining_steps1 > 0:
+            for node in flow_values:
+                if node not in activated_nodes:
+                    dist = distances[agent1_pos][node]
+                    if remaining_steps1 > dist + 1:  # Only consider nodes reachable within remaining steps
+                        potential_flow = flow_values[node] * (remaining_steps1 - (dist + 1))
+                        candidates1.append((node, potential_flow, dist))
+
+        candidates2 = []
+        if remaining_steps2 > 0:
+            for node in flow_values:
+                if node not in activated_nodes:
+                    dist = distances[agent2_pos][node]
+                    if remaining_steps2 > dist + 1:  # Only consider nodes reachable within remaining steps
+                        potential_flow = flow_values[node] * (remaining_steps2 - (dist + 1))
+                        candidates2.append((node, potential_flow, dist))
+
+        # Sort candidates by potential flow
+        candidates1.sort(key=lambda x: x[1], reverse=True)
+        candidates2.sort(key=lambda x: x[1], reverse=True)
+
+        # Process actions for both agents
+        for node1, _, dist1 in candidates1:
+            for node2, _, dist2 in candidates2:
+                if node1 == node2:  # Avoid activating the same node twice
+                    continue
+                # Agent 1 activates or moves to node1, Agent 2 activates or moves to node2
+                activated_nodes.add(node1)
+                activated_nodes.add(node2)
+                backtrack(
+                    node1,
+                    node2,
+                    remaining_steps1 - (dist1 if node1 != agent1_pos else 1),
+                    remaining_steps2 - (dist2 if node2 != agent2_pos else 1),
+                    activated_nodes,
+                    cumulative_flow +
+                    (flow_values[node1] * (remaining_steps1 - (dist1 if node1 != agent1_pos else 1))) +
+                    (flow_values[node2] * (remaining_steps2 - (dist2 if node2 != agent2_pos else 1)))
+                )
+                activated_nodes.remove(node1)
+                activated_nodes.remove(node2)
+
+    # Start the backtracking process with both agents at the start node
+    backtrack(start_node, start_node, max_steps, max_steps, set(), 0)
+    return best_cumulative_flow
+
 condensed_distances, condensed_flows = condense_graph(graph, flows, 'AA')
 # print(condensed_distances)
 # print(condensed_flows)
 result = best_flow(condensed_flows, condensed_distances, 'AA', 30)
 print('part 1:', result)
 
+# result_pt2 = best_flow_two_agents(condensed_flows, condensed_distances, 'AA', 26)
+result_pt2 = best_flow_two_agents(condensed_flows, condensed_distances, 'AA', 24)
+print('part 2:', result_pt2)
