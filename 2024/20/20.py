@@ -9,13 +9,10 @@ def bfs_path(grid, start, end):
         (x, y), path = queue.popleft()
         if (x, y) == end:
             return path + [(x, y)]
-        if (x, y) in visited:
-            continue
-        visited.add((x, y))
-        for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
-            new_x, new_y = x + dx, y + dy
-            if grid.get((new_x, new_y)) != '#':
-                queue.append(((new_x, new_y), path + [(x, y)]))
+        if (x, y) not in visited:
+            visited.add((x, y))
+            queue.extend(((new_x, new_y), path + [(x, y)]) for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]
+                         if grid.get((new_x := x + dx, new_y := y + dy)) != '#')
     return []
 
 def dist(a, b):
@@ -36,7 +33,7 @@ def find_cheats(path, cheat_len=2):
     return cheats
 
 start = next(k for k, v in grid.items() if v == 'S')
-end = next(k for k, v in grid.items() if v == 'E')
+end = next(k for k, v in grid.items() if v == 'E') 
 base_path = bfs_path(grid, start, end)
 print(f'start: {start}, end: {end}, base path length: {len(base_path)}')
 
