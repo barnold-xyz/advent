@@ -1,0 +1,21 @@
+#!/bin/bash
+
+
+echo "[DEBUG] Running pre-commit hook"
+
+# Check if the script is running on Windows
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    # Activate virtual environment for Windows
+    source .venv/Scripts/activate
+else
+    # Activate virtual environment for Unix-like systems
+    source .venv/bin/activate
+fi
+
+# Update requirements.txt
+pip freeze > requirements.txt
+
+# Add the updated requirements.txt to the commit
+git add requirements.txt
+
+echo "Updated requirements.txt and added to the commit."
